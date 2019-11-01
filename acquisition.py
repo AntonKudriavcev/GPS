@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from initialize import Result
 
@@ -169,29 +170,81 @@ class Acquisition_Result(Result):
                 # --- Indicate PRN number of the detected signal -------------------
                 print ('%02d ' % (PRN + 1))
                 Ranging_Code = settings.generate_Ranging_Code(PRN)
+                print(Ranging_Code)
+                print(len(Ranging_Code))
+
+                # plt.subplot(3, 1, 1)
+                # plt.plot(np.arange(len(Ranging_Code)), Ranging_Code)
+                # plt.axis('tight')
+                # plt.grid()
+                # plt.title('Ranging code plot')
+                # plt.xlabel('Time (ms)')
+                # plt.ylabel('Amplitude')
 
                 code_Value_Index = np.floor(ts * np.arange(1, 10 * samples_Per_Code + 1) / (1.0 / settings.code_Freq_Basis))
+                print(code_Value_Index)
+                print(len(code_Value_Index))
 
                 long_Ranging_Code = Ranging_Code[np.longlong(code_Value_Index % 1023)]
+                print(long_Ranging_Code)
+
+                plt.subplot(3, 1, 1)
+                plt.plot(np.arange(len(long_Ranging_Code[:int(len(long_Ranging_Code)/100)])), 
+                                        long_Ranging_Code[:int(len(long_Ranging_Code)/100)])
+                plt.axis('tight')
+                plt.grid()
+                plt.title('Ranging code plot')
+                plt.xlabel('Time (ms)')
+                plt.ylabel('Amplitude')
+
 
                 # (Using detected C/A code phase)
                 xCarrier = signal_0DC[code_Phase : code_Phase + 10 * samples_Per_Code] * long_Ranging_Code
 
+                plt.subplot(3, 1, 2)
+                plt.plot(np.arange(len(signal_0DC[code_Phase : int(((code_Phase + 10 * samples_Per_Code))/10)])), 
+                                        signal_0DC[code_Phase : int(((code_Phase + 10 * samples_Per_Code))/10)])
+                plt.axis('tight')
+                plt.grid()
+                plt.title('Ranging code plot')
+                plt.xlabel('Time (ms)')
+                plt.ylabel('Amplitude')
+
+                print(xCarrier)
+
+                plt.subplot(3, 1, 3)
+                plt.plot(np.arange(len(xCarrier[:int(len(xCarrier)/100)])), 
+                                    xCarrier[:int(len(xCarrier)/100)])
+                plt.axis('tight')
+                plt.grid()
+                plt.xlabel('Time (ms)')
+                plt.ylabel('Amplitude')
+                plt.show()
+
                 fft_Num_Pts = 8 * 2 ** (np.ceil(np.log2(len(xCarrier))))
+                print(fft_Num_Pts)
 
                 # associated carrier frequency
                 fftxc = np.abs(np.fft.fft(xCarrier, np.long(fft_Num_Pts)))
+                print(fftxc)
 
                 uniq_Fft_Pts = np.long(np.ceil((fft_Num_Pts + 1) / 2.0))
+                print(uniq_Fft_Pts)
 
                 fft_Max = fftxc[4:uniq_Fft_Pts - 5].max()
+                print(fft_Max)
+
                 fft_Max_Index = fftxc[4:uniq_Fft_Pts - 5].argmax()
+                print(fft_Max_Index)
 
                 fft_Freq_Bins = np.arange(uniq_Fft_Pts) * settings.sampling_Freq / fft_Num_Pts
+                print(fft_Freq_Bins)
 
                 carr_Freq[PRN] = fft_Freq_Bins[fft_Max_Index]
+                print(carr_Freq[PRN])
 
                 code_Phase_[PRN] = code_Phase
+                print(code_Phase_[PRN])
 
             else:
                 # --- No signal with this PRN --------------------------------------
